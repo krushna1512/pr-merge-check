@@ -1,34 +1,24 @@
-name: Check PR Merge
-
+name: Check Checkboxes in Pull Request Description
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited]
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
-  check_merge:
+  checkbox-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Check Checkboxes
         uses: actions/checkout@v2
-
-      - name: Check PR Checklist
-        id: checklist
-        uses: actions/github-script@v4
-        with:
-          script: |
-            // Import the core module to use the setFailed function
-            const core = require('@actions/core');
-
-            // Extract the description from the pull request payload
-            const description = context.payload.pull_request.body;
-
-            // Extract all checkboxes ([ ]) from the description using a regular expression
-            const checkboxes = description.match(/\[[ x]\]/g) || [];
-
-            // Filter unchecked checkboxes ([ ]) from the list
-            const uncheckedCheckboxes = checkboxes.filter(checkbox => checkbox === "[ ]");
-
-            // If there are unchecked checkboxes, fail the workflow with an error message
-            if (uncheckedCheckboxes.length > 0) {
-              core.setFailed("Please make sure all checkboxes are checked before merging.");
-            }
+      - name: Check Checkboxes in Description
+        run: |
+          description=$(cat ${{ github.event.pull_request.body_path }})
+          if [[ "$description" =~ \[x\] && ! "$description" =~ \[ \] ]]; then
+            echo "All checkboxes are checked. Proceed with the merge."
+            exit 0
+          else
+            echo "Not all checkboxes are checked. Merge request not allowed."
+            exit 1
+          fi
