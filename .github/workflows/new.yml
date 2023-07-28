@@ -12,10 +12,10 @@ jobs:
       - name: Check Checkboxes in Description
         run: |
           description=$(cat ${{ github.event.pull_request.body_path }})
-          if [[ "$description" =~ \[x\] && ! "$description" =~ \[ \] ]]; then
-            echo "All checkboxes are checked. Proceed with the merge."
-            exit 0
-          else
+          if echo "$description" | grep -E '\[ \]' >/dev/null; then
             echo "Not all checkboxes are checked. Merge request not allowed."
             exit 1
+          else
+            echo "All checkboxes are checked. Proceed with the merge."
+            exit 0
           fi
