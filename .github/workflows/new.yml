@@ -19,15 +19,20 @@ jobs:
         run: |
           const fs = require('fs');
 
-          const descriptionFilePath = process.env.GITHUB_EVENT_PATH;
-          const description = fs.readFileSync(descriptionFilePath, 'utf8');
+          try {
+            const descriptionFilePath = process.env.GITHUB_EVENT_PATH;
+            const description = fs.readFileSync(descriptionFilePath, 'utf8');
 
-          const checkboxes = description.match(/\[[ x]\]/g) || [];
-          const uncheckedCheckboxes = checkboxes.filter(checkbox => checkbox === "[ ]");
+            const checkboxes = description.match(/\[[ x]\]/g) || [];
+            const uncheckedCheckboxes = checkboxes.filter(checkbox => checkbox === "[ ]");
 
-          if (uncheckedCheckboxes.length > 0) {
-            console.log("Not all checkboxes are checked. Merge request not allowed.");
+            if (uncheckedCheckboxes.length > 0) {
+              console.log("Not all checkboxes are checked. Merge request not allowed.");
+              process.exit(1);
+            } else {
+              console.log("All checkboxes are checked. Proceed with the merge.");
+            }
+          } catch (error) {
+            console.error("Error occurred:", error);
             process.exit(1);
-          } else {
-            console.log("All checkboxes are checked. Proceed with the merge.");
           }
