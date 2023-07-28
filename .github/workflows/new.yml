@@ -17,21 +17,17 @@ jobs:
 
       - name: Check Checkboxes in Description
         run: |
-          const description = process.env.GITHUB_EVENT_PATH
-            ? require('fs').readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')
-            : null;
+          const fs = require('fs');
 
-          if (description) {
-            const checkboxes = description.match(/\[[ x]\]/g) || [];
-            const uncheckedCheckboxes = checkboxes.filter(checkbox => checkbox === "[ ]");
+          const descriptionFilePath = process.env.GITHUB_EVENT_PATH;
+          const description = fs.readFileSync(descriptionFilePath, 'utf8');
 
-            if (uncheckedCheckboxes.length > 0) {
-              console.log("Not all checkboxes are checked. Merge request not allowed.");
-              process.exit(1);
-            } else {
-              console.log("All checkboxes are checked. Proceed with the merge.");
-            }
-          } else {
-            console.log("Failed to get pull request description.");
+          const checkboxes = description.match(/\[[ x]\]/g) || [];
+          const uncheckedCheckboxes = checkboxes.filter(checkbox => checkbox === "[ ]");
+
+          if (uncheckedCheckboxes.length > 0) {
+            console.log("Not all checkboxes are checked. Merge request not allowed.");
             process.exit(1);
+          } else {
+            console.log("All checkboxes are checked. Proceed with the merge.");
           }
