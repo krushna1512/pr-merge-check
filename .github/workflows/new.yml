@@ -10,13 +10,28 @@ jobs:
       - name: Check Checkboxes
         uses: actions/checkout@v2
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14' # Choose the version of Node.js you want to use
+
       - name: Check Checkboxes in Description
         run: |
-          description=$(curl -sSL ${{ github.event.pull_request.url }} | jq -r '.body')
-          if echo "$description" | grep -E '\[ \]' >/dev/null; then
-            echo "Not all checkboxes are checked. Merge request not allowed."
-            exit 1
-          else
-            echo "All checkboxes are checked. Proceed with the merge."
-            exit 0
-          fi
+          const description = process.env.GITHUB_EVENT_PATH
+            ? require('fs').readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')
+            : null;
+
+          if (description) {
+            const checkboxes = description.match(/\[[ x]\]/g) || [];
+            const uncheckedCheckboxes = checkboxes.filter(checkbox => checkbox === "[ ]");
+
+            if (uncheckedCheckboxes.length > 0) {
+              console.log("Not all checkboxes are checked. Merge request not allowed.");
+              process.exit(1);
+            } else {
+              console.log("All checkboxes are checked. Proceed with the merge.");
+            }
+          } else {
+            console.log("Failed to get pull request description.");
+            process.exit(1);
+          }
