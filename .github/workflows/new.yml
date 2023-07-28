@@ -16,19 +16,19 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            # Import the core module to use the setFailed function
+            // Import the core module to use the setFailed function
             const core = require('@actions/core');
 
-            # Extract the description from the pull request payload
+            // Extract the description from the pull request payload
             const description = context.payload.pull_request.body;
 
-            # Extract all checkboxes ([ ]) from the description using a regular expression
+            // Extract all checkboxes ([ ]) from the description using a regular expression
             const checkboxes = description.match(/\[[ x]\]/g) || [];
 
-            # Filter unchecked checkboxes ([ ]) from the list
+            // Filter unchecked checkboxes ([ ]) from the list
             const uncheckedCheckboxes = checkboxes.filter(checkbox => checkbox === "[ ]");
 
-            # If there are unchecked checkboxes, fail the workflow with an error message
+            // If there are unchecked checkboxes, fail the workflow with an error message
             if (uncheckedCheckboxes.length > 0) {
               core.setFailed("Please make sure all checkboxes are checked before merging.");
             }
