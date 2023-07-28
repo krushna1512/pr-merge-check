@@ -9,13 +9,17 @@ jobs:
     steps:
       - name: Check Checkboxes
         uses: actions/checkout@v2
-      - name: Check Checkboxes in Description
+      - name: Label PR based on checkboxes
+        uses: pullreminders/labeler-action@v2
+        with:
+          label-config: '{"all_checkboxes_checked": "[x]"}'
+      - name: Check Label and Allow Merge
         run: |
-          description=$(cat ${{ github.event.pull_request.body_path }})
-          while IFS= read -r line; do
-            if [[ $line =~ \[ \] ]]; then
-              echo "Not all checkboxes are checked. Merge request not allowed."
-              exit 1
-            fi
-          done <<< "$description"
-          echo "All checkboxes are checked. Proceed with the merge."
+          label_status=$(curl -s "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels?per_page=100" | jq '.[].name' | grep -c 'all_checkboxes_checked')
+          if [ "$label_status" -eq "1" ]; then
+            echo "All checkboxes are checked. Proceed with the merge."
+            exit 0
+          else
+            echo "Not all checkboxes are checked. Merge request not allowed."
+            exit 1
+          fi
